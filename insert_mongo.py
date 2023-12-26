@@ -1,11 +1,12 @@
 import json
-import pymongo
+import requests
 
 URL = "mongodb://hodor-mongo:27017"
 
 f = open('express_products2.json')
 data = json.load(f)
-concated_data = data[:1000]
+print("len of tot data", len(data))
+concated_data = data[:500]
 
 stores = {}
 
@@ -27,29 +28,29 @@ for x in concated_data:
                 stores[z]={"storeId":z,"variants":[new_dict]}
 
 list_stores = list(stores.values())
-print(len(variants))
+print(len(concated_data))
+print(len(list_stores))
 
 
-# with open("onsefeed2.json", "w") as file:
+# with open("products.json", "w") as file:
+#     json.dump(concated_data,file)
+
+# with open("stores.json", "w") as file:
 #     json.dump(list_stores,file)
 
+store_payload = json.dumps(list_stores)
+products_payload = json.dumps(concated_data)
 
-def insert_to_collection(collection, data_array):
-    result = collection.insert_many(data_array)
-    print("Inserted document IDs:", result.inserted_ids)
+productsUrl = "http://localhost:7171/v2/sites/test-unbxd_213213/products/_insertbatch"
+storeUrl = "http://localhost:7171/sites/test-unbxd_213213/stores/_insertbatch"
+headers = {'Content-Type': 'application/json'}
 
+response = requests.post(storeUrl, data=store_payload, headers=headers)
+print("Status Code store insert", response.status_code)
+print("Response Content:", response.text)
 
-client = pymongo.MongoClient(URL)
-
-db = client["products"]
-
-collection = db["s_h-test"]
-insert_to_collection(collection,stores)
-
-collection = db["h-test"]
-insert_to_collection(collection,products)
-
-collection = db["v_h-test"]
-insert_to_collection(collection,variants)
+response = requests.post(productsUrl, data=products_payload, headers=headers)
+print("Status Code for product insert", response.status_code)
+print("Response Content:", response.text)
 
 
